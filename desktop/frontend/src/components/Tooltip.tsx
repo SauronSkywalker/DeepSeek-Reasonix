@@ -83,44 +83,50 @@ export function Tooltip({
     // CSS zoom on <html> changes getBoundingClientRect() (visual pixels)
     // but NOT window.innerWidth/innerHeight (CSS pixels).  Convert gBCR
     // values to CSS pixel space so they are comparable with innerWidth/Height.
+    // Gap/pad constants are also divided by zoom so the visual distance
+    // (gap between trigger and tooltip) stays the same at any zoom level.
     const z = getCssZoom();
     const r = trigger.getBoundingClientRect();
     const t = tip.getBoundingClientRect();
     const rect   = { left: r.left / z, top: r.top / z, width: r.width / z, height: r.height / z, right: r.right / z, bottom: r.bottom / z };
     const tipRect = { width: t.width / z, height: t.height / z };
+    const gap = GAP / z;
+    const arrow = ARROW_SIZE / z;
+    const edgePad = EDGE_PAD / z;
+    const arrowPad = ARROW_PAD / z;
     const space = {
-      top: rect.top - EDGE_PAD,
-      bottom: window.innerHeight - rect.bottom - EDGE_PAD,
-      left: rect.left - EDGE_PAD,
-      right: window.innerWidth - rect.right - EDGE_PAD,
+      top: rect.top - edgePad,
+      bottom: window.innerHeight - rect.bottom - edgePad,
+      left: rect.left - edgePad,
+      right: window.innerWidth - rect.right - edgePad,
     };
     let actualSide = side;
-    if ((side === "top" || side === "bottom") && space[side] < tipRect.height + GAP + ARROW_SIZE) {
+    if ((side === "top" || side === "bottom") && space[side] < tipRect.height + gap + arrow) {
       const opposite = oppositeSide(side);
       if (space[opposite] > space[side]) actualSide = opposite;
-    } else if ((side === "left" || side === "right") && space[side] < tipRect.width + GAP + ARROW_SIZE) {
+    } else if ((side === "left" || side === "right") && space[side] < tipRect.width + gap + arrow) {
       const opposite = oppositeSide(side);
       if (space[opposite] > space[side]) actualSide = opposite;
     }
 
     let left =
       actualSide === "left"
-        ? rect.left - tipRect.width - GAP - ARROW_SIZE
+        ? rect.left - tipRect.width - gap - arrow
         : actualSide === "right"
-          ? rect.right + GAP + ARROW_SIZE
+          ? rect.right + gap + arrow
           : rect.left + rect.width / 2 - tipRect.width / 2;
     let top =
       actualSide === "top"
-        ? rect.top - tipRect.height - GAP - ARROW_SIZE
+        ? rect.top - tipRect.height - gap - arrow
         : actualSide === "bottom"
-          ? rect.bottom + GAP + ARROW_SIZE
+          ? rect.bottom + gap + arrow
           : rect.top + rect.height / 2 - tipRect.height / 2;
 
-    left = clamp(left, EDGE_PAD, window.innerWidth - tipRect.width - EDGE_PAD);
-    top = clamp(top, EDGE_PAD, window.innerHeight - tipRect.height - EDGE_PAD);
-    // Arrow offset in CSS pixels: (trigger center visual / zoom) - tooltip left CSS.
-    const arrowX = clamp((r.left + r.width / 2) / z - left, ARROW_PAD, t.width / z - ARROW_PAD);
-    const arrowY = clamp((r.top + r.height / 2) / z - top, ARROW_PAD, t.height / z - ARROW_PAD);
+    left = clamp(left, edgePad, window.innerWidth - tipRect.width - edgePad);
+    top = clamp(top, edgePad, window.innerHeight - tipRect.height - edgePad);
+    // Arrow offset: trigger center (CSS px) - tooltip left (CSS px).
+    const arrowX = clamp((r.left + r.width / 2) / z - left, arrowPad, t.width / z - arrowPad);
+    const arrowY = clamp((r.top + r.height / 2) / z - top, arrowPad, t.height / z - arrowPad);
 
     const next = {
       left,

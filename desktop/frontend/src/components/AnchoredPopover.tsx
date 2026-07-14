@@ -35,16 +35,18 @@ function calculatePosition(
   const a = { left: anchor.left / z, right: anchor.right / z, top: anchor.top / z, bottom: anchor.bottom / z };
   const mw = menu.width / z;
   const mh = menu.height / z;
-  const preferredTop = a.top - mh - offset;
-  const fallbackTop = a.bottom + offset;
+  const edgeGap = EDGE_GAP / z;
+  const off = offset / z;
+  const preferredTop = a.top - mh - off;
+  const fallbackTop = a.bottom + off;
   const top = placement === "bottom"
-    ? Math.min(fallbackTop, Math.max(EDGE_GAP, viewportHeight - mh - EDGE_GAP))
-    : preferredTop >= EDGE_GAP
+    ? Math.min(fallbackTop, Math.max(edgeGap, viewportHeight - mh - edgeGap))
+    : preferredTop >= edgeGap
     ? preferredTop
-    : Math.min(fallbackTop, Math.max(EDGE_GAP, viewportHeight - mh - EDGE_GAP));
+    : Math.min(fallbackTop, Math.max(edgeGap, viewportHeight - mh - edgeGap));
   const rawLeft = align === "end" ? a.right - mw : a.left;
-  const left = clamp(rawLeft, EDGE_GAP, Math.max(EDGE_GAP, viewportWidth - mw - EDGE_GAP));
-  return { left, top: clamp(top, EDGE_GAP, Math.max(EDGE_GAP, viewportHeight - mh - EDGE_GAP)) };
+  const left = clamp(rawLeft, edgeGap, Math.max(edgeGap, viewportWidth - mw - edgeGap));
+  return { left, top: clamp(top, edgeGap, Math.max(edgeGap, viewportHeight - mh - edgeGap)) };
 }
 
 export function AnchoredPopover({

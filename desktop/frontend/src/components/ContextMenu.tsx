@@ -28,9 +28,10 @@ function clampMenuPoint(left: number, top: number, width: number, height: number
   if (typeof window === "undefined") return { left, top };
   // width/height come from getBoundingClientRect (visual px); convert to CSS px.
   const z = getCssZoom();
+  const edge = EDGE_GAP / z;
   return {
-    left: Math.min(Math.max(EDGE_GAP, left), Math.max(EDGE_GAP, window.innerWidth - width / z - EDGE_GAP)),
-    top: Math.min(Math.max(EDGE_GAP, top), Math.max(EDGE_GAP, window.innerHeight - height / z - EDGE_GAP)),
+    left: Math.min(Math.max(edge, left), Math.max(edge, window.innerWidth - width / z - edge)),
+    top: Math.min(Math.max(edge, top), Math.max(edge, window.innerHeight - height / z - edge)),
   };
 }
 
@@ -43,7 +44,7 @@ export function contextMenuPointFromEvent(
   // getBoundingClientRect returns visual pixels under CSS zoom; convert to CSS px.
   const z = getCssZoom();
   const rect = event.currentTarget.getBoundingClientRect();
-  return { left: rect.left / z + 12, top: rect.bottom / z + 6 };
+  return { left: rect.left / z + 12 / z, top: rect.bottom / z + 6 / z };
 }
 
 export function ContextMenu({
