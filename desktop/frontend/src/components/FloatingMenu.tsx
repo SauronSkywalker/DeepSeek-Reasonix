@@ -12,13 +12,11 @@ export interface FloatingMenuItem {
 
 function clampFloatingMenuPosition(x: number, y: number, width: number, height: number): { left: number; top: number } {
   if (typeof window === "undefined") return { left: x, top: y };
-  const z = parseFloat(document.documentElement?.style.zoom) || 1;
-  const margin = FLOATING_MENU_MARGIN / z;
-  const maxLeft = Math.max(margin, window.innerWidth - width - margin);
-  const maxTop = Math.max(margin, window.innerHeight - height - margin);
+  const maxLeft = Math.max(FLOATING_MENU_MARGIN, window.innerWidth - width - FLOATING_MENU_MARGIN);
+  const maxTop = Math.max(FLOATING_MENU_MARGIN, window.innerHeight - height - FLOATING_MENU_MARGIN);
   return {
-    left: Math.min(maxLeft, Math.max(margin, x)),
-    top: Math.min(maxTop, Math.max(margin, y)),
+    left: Math.min(maxLeft, Math.max(FLOATING_MENU_MARGIN, x)),
+    top: Math.min(maxTop, Math.max(FLOATING_MENU_MARGIN, y)),
   };
 }
 

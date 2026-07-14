@@ -27,25 +27,18 @@ function calculatePosition(
   offset: number,
   placement: "auto" | "bottom",
 ): PopoverPosition {
-  // gBCR returns visual pixels when CSS zoom ≠ 1 on <html>; convert to CSS px.
-  const z = parseFloat(document.documentElement?.style.zoom) || 1;
   const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
-  const a = { left: anchor.left / z, right: anchor.right / z, top: anchor.top / z, bottom: anchor.bottom / z };
-  const mw = menu.width / z;
-  const mh = menu.height / z;
-  const pad = EDGE_GAP / z;
-  const off = offset / z;
-  const preferredTop = a.top - mh - off;
-  const fallbackTop = a.bottom + off;
+  const preferredTop = anchor.top - menu.height - offset;
+  const fallbackTop = anchor.bottom + offset;
   const top = placement === "bottom"
-    ? Math.min(fallbackTop, Math.max(pad, viewportHeight - mh - pad))
-    : preferredTop >= pad
+    ? Math.min(fallbackTop, Math.max(EDGE_GAP, viewportHeight - menu.height - EDGE_GAP))
+    : preferredTop >= EDGE_GAP
     ? preferredTop
-    : Math.min(fallbackTop, Math.max(pad, viewportHeight - mh - pad));
-  const rawLeft = align === "end" ? a.right - mw : a.left;
-  const left = clamp(rawLeft, pad, Math.max(pad, viewportWidth - mw - pad));
-  return { left, top: clamp(top, pad, Math.max(pad, viewportHeight - mh - pad)) };
+    : Math.min(fallbackTop, Math.max(EDGE_GAP, viewportHeight - menu.height - EDGE_GAP));
+  const rawLeft = align === "end" ? anchor.right - menu.width : anchor.left;
+  const left = clamp(rawLeft, EDGE_GAP, Math.max(EDGE_GAP, viewportWidth - menu.width - EDGE_GAP));
+  return { left, top: clamp(top, EDGE_GAP, Math.max(EDGE_GAP, viewportHeight - menu.height - EDGE_GAP)) };
 }
 
 export function AnchoredPopover({
