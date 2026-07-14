@@ -1,6 +1,7 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { actualInnerHeight, actualInnerWidth } from "../lib/dpiScale";
 
 type TooltipSide = "top" | "bottom" | "left" | "right";
 
@@ -83,9 +84,9 @@ export function Tooltip({
     const tipRect = tip.getBoundingClientRect();
     const space = {
       top: rect.top - EDGE_PAD,
-      bottom: window.innerHeight - rect.bottom - EDGE_PAD,
+      bottom: actualInnerHeight() - rect.bottom - EDGE_PAD,
       left: rect.left - EDGE_PAD,
-      right: window.innerWidth - rect.right - EDGE_PAD,
+      right: actualInnerWidth() - rect.right - EDGE_PAD,
     };
     let actualSide = side;
     if ((side === "top" || side === "bottom") && space[side] < tipRect.height + GAP + ARROW_SIZE) {
@@ -109,8 +110,8 @@ export function Tooltip({
           ? rect.bottom + GAP + ARROW_SIZE
           : rect.top + rect.height / 2 - tipRect.height / 2;
 
-    left = clamp(left, EDGE_PAD, window.innerWidth - tipRect.width - EDGE_PAD);
-    top = clamp(top, EDGE_PAD, window.innerHeight - tipRect.height - EDGE_PAD);
+    left = clamp(left, EDGE_PAD, actualInnerWidth() - tipRect.width - EDGE_PAD);
+    top = clamp(top, EDGE_PAD, actualInnerHeight() - tipRect.height - EDGE_PAD);
     const arrowX = clamp(rect.left + rect.width / 2 - left, ARROW_PAD, tipRect.width - ARROW_PAD);
     const arrowY = clamp(rect.top + rect.height / 2 - top, ARROW_PAD, tipRect.height - ARROW_PAD);
 

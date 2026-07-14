@@ -59,6 +59,25 @@ function writeZoom(value: ZoomLevel): void {
 
 // ─── public API ─────────────────────────────────────────────────────
 
+/**
+ * Return `window.innerWidth` adjusted for CSS zoom.
+ * CSS zoom does NOT change `window.innerWidth`, but `getBoundingClientRect()`
+ * returns values in the zoomed coordinate space.  Floating UI that mixes the
+ * two must use this helper to avoid positioning misalignment.
+ */
+export function actualInnerWidth(): number {
+  const zoom = parseFloat(document.documentElement?.style.zoom) || 1;
+  return window.innerWidth / zoom;
+}
+
+/**
+ * Return `window.innerHeight` adjusted for CSS zoom.  See actualInnerWidth.
+ */
+export function actualInnerHeight(): number {
+  const zoom = parseFloat(document.documentElement?.style.zoom) || 1;
+  return window.innerHeight / zoom;
+}
+
 /** Read the saved zoom level that will be applied on next restart. */
 export function getRestartZoom(): ZoomLevel {
   return readZoom(DEFAULT_ZOOM);

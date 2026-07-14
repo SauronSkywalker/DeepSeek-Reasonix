@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { CSSProperties, ReactNode, RefObject } from "react";
 import { createPortal } from "react-dom";
+import { actualInnerHeight, actualInnerWidth } from "../lib/dpiScale";
 
 type PopoverPosition = {
   left: number;
@@ -27,8 +28,8 @@ function calculatePosition(
   offset: number,
   placement: "auto" | "bottom",
 ): PopoverPosition {
-  const viewportWidth = window.innerWidth;
-  const viewportHeight = window.innerHeight;
+  const viewportWidth = actualInnerWidth();
+  const viewportHeight = actualInnerHeight();
   const preferredTop = anchor.top - menu.height - offset;
   const fallbackTop = anchor.bottom + offset;
   const top = placement === "bottom"
