@@ -1,7 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent, ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { actualInnerHeight, actualInnerWidth } from "../lib/dpiScale";
 
 export type ContextMenuPoint = { left: number; top: number };
 
@@ -27,8 +26,8 @@ const EDGE_GAP = 8;
 function clampMenuPoint(left: number, top: number, width: number, height: number): ContextMenuPoint {
   if (typeof window === "undefined") return { left, top };
   return {
-    left: Math.min(Math.max(EDGE_GAP, left), Math.max(EDGE_GAP, actualInnerWidth() - width - EDGE_GAP)),
-    top: Math.min(Math.max(EDGE_GAP, top), Math.max(EDGE_GAP, actualInnerHeight() - height - EDGE_GAP)),
+    left: Math.min(Math.max(EDGE_GAP, left), Math.max(EDGE_GAP, window.innerWidth - width - EDGE_GAP)),
+    top: Math.min(Math.max(EDGE_GAP, top), Math.max(EDGE_GAP, window.innerHeight - height - EDGE_GAP)),
   };
 }
 
