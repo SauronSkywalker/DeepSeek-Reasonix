@@ -25,9 +25,11 @@ const EDGE_GAP = 8;
 
 function clampMenuPoint(left: number, top: number, width: number, height: number): ContextMenuPoint {
   if (typeof window === "undefined") return { left, top };
+  const z = parseFloat(document.documentElement?.style.zoom) || 1;
+  const edge = EDGE_GAP / z;
   return {
-    left: Math.min(Math.max(EDGE_GAP, left), Math.max(EDGE_GAP, window.innerWidth - width - EDGE_GAP)),
-    top: Math.min(Math.max(EDGE_GAP, top), Math.max(EDGE_GAP, window.innerHeight - height - EDGE_GAP)),
+    left: Math.min(Math.max(edge, left), Math.max(edge, window.innerWidth - width / z - edge)),
+    top: Math.min(Math.max(edge, top), Math.max(edge, window.innerHeight - height / z - edge)),
   };
 }
 
@@ -35,10 +37,13 @@ export function contextMenuPointFromEvent(
   event: ReactMouseEvent<HTMLElement> | ReactKeyboardEvent<HTMLElement>,
 ): ContextMenuPoint {
   if ("clientX" in event && event.clientX > 0 && event.clientY > 0) {
+    // clientX/clientY are CSS viewport pixels, unaffected by CSS zoom.
     return { left: event.clientX, top: event.clientY };
   }
+  // gBCR returns visual pixels under CSS zoom; convert to CSS px.
+  const z = parseFloat(document.documentElement?.style.zoom) || 1;
   const rect = event.currentTarget.getBoundingClientRect();
-  return { left: rect.left + 12, top: rect.bottom + 6 };
+  return { left: rect.left / z + 12 / z, top: rect.bottom / z + 6 / z };
 }
 
 export function ContextMenu({

@@ -2,6 +2,8 @@ import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, ReactNode } from "react";
 import { createPortal } from "react-dom";
 
+// CSS zoom helpers: getBoundingClientRect() returns visual pixels, but
+// style.left/top and window.innerWidth/Height are in CSS pixel space.
 type TooltipSide = "top" | "bottom" | "left" | "right";
 
 const GAP = 8;
@@ -79,48 +81,56 @@ export function Tooltip({
     const trigger = triggerRef.current;
     const tip = tooltipRef.current;
     if (!trigger || !tip) return;
-    const rect = trigger.getBoundingClientRect();
-    const tipRect = tip.getBoundingClientRect();
+    // CSS zoom on <html>: getBoundingClientRect() returns visual pixels;
+    // style.left/top and window.innerWidth/Height are CSS pixels.
+    // Convert visual → CSS by dividing by zoom factor.
+    const z = parseFloat(document.documentElement?.style.zoom) || 1;
+    const r = trigger.getBoundingClientRect();
+    const t = tip.getBoundingClientRect();
+    // Convert visual px to CSS px (r, t) and keep edge constants in CSS px.
+    const rx = r.left / z, ry = r.top / z, rw = r.width / z, rh = r.height / z;
+    const rb = ry + rh, rr = rx + rw;
+    const tw = t.width / z, th = t.height / z;
+    const gap  = GAP  / z;
+    const edge = EDGE_PAD / z;
+    const aSize = ARROW_SIZE / z;
+    const aPad  = ARROW_PAD / z;
+
     const space = {
-      top: rect.top - EDGE_PAD,
-      bottom: window.innerHeight - rect.bottom - EDGE_PAD,
-      left: rect.left - EDGE_PAD,
-      right: window.innerWidth - rect.right - EDGE_PAD,
+      top: ry - edge,
+      bottom: window.innerHeight - rb - edge,
+      left: rx - edge,
+      right: window.innerWidth - rr - edge,
     };
     let actualSide = side;
-    if ((side === "top" || side === "bottom") && space[side] < tipRect.height + GAP + ARROW_SIZE) {
+    if ((side === "top" || side === "bottom") && space[side] < th + gap + aSize) {
       const opposite = oppositeSide(side);
       if (space[opposite] > space[side]) actualSide = opposite;
-    } else if ((side === "left" || side === "right") && space[side] < tipRect.width + GAP + ARROW_SIZE) {
+    } else if ((side === "left" || side === "right") && space[side] < tw + gap + aSize) {
       const opposite = oppositeSide(side);
       if (space[opposite] > space[side]) actualSide = opposite;
     }
 
     let left =
       actualSide === "left"
-        ? rect.left - tipRect.width - GAP - ARROW_SIZE
+        ? rx - tw - gap - aSize
         : actualSide === "right"
-          ? rect.right + GAP + ARROW_SIZE
-          : rect.left + rect.width / 2 - tipRect.width / 2;
+          ? rr + gap + aSize
+          : rx + rw / 2 - tw / 2;
     let top =
       actualSide === "top"
-        ? rect.top - tipRect.height - GAP - ARROW_SIZE
+        ? ry - th - gap - aSize
         : actualSide === "bottom"
-          ? rect.bottom + GAP + ARROW_SIZE
-          : rect.top + rect.height / 2 - tipRect.height / 2;
+          ? rb + gap + aSize
+          : ry + rh / 2 - th / 2;
 
-    left = clamp(left, EDGE_PAD, window.innerWidth - tipRect.width - EDGE_PAD);
-    top = clamp(top, EDGE_PAD, window.innerHeight - tipRect.height - EDGE_PAD);
-    const arrowX = clamp(rect.left + rect.width / 2 - left, ARROW_PAD, tipRect.width - ARROW_PAD);
-    const arrowY = clamp(rect.top + rect.height / 2 - top, ARROW_PAD, tipRect.height - ARROW_PAD);
+    left = clamp(left, edge, window.innerWidth - tw - edge);
+    top = clamp(top, edge, window.innerHeight - th - edge);
+    // Arrow offset in CSS pixels.
+    const arrowX = clamp(rx + rw / 2 - left, aPad, tw - aPad);
+    const arrowY = clamp(ry + rh / 2 - top, aPad, th - aPad);
 
-    const next = {
-      left,
-      top,
-      side: actualSide,
-      arrowX,
-      arrowY,
-    };
+    const next = { left, top, side: actualSide, arrowX, arrowY };
     setPosition((current) => (samePosition(current, next) ? current : next));
   };
 
