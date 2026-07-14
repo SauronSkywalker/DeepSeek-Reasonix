@@ -59,16 +59,6 @@ function writeZoom(value: ZoomLevel): void {
 
 // ─── public API ─────────────────────────────────────────────────────
 
-/**
- * Return the current CSS zoom factor (1.0 when no zoom is applied).
- * CSS `zoom` on `<html>` changes getBoundingClientRect() values (visual
- * pixels) but NOT window.innerWidth/innerHeight (CSS pixels).
- * Use this helper to convert between the two coordinate systems.
- */
-export function getCssZoom(): number {
-  return parseFloat(document.documentElement?.style.zoom) || 1;
-}
-
 /** Read the saved zoom level that will be applied on next restart. */
 export function getRestartZoom(): ZoomLevel {
   return readZoom(DEFAULT_ZOOM);

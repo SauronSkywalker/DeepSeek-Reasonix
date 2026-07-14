@@ -1,7 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent, ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { getCssZoom } from "../lib/dpiScale";
 
 export type ContextMenuPoint = { left: number; top: number };
 
@@ -26,12 +25,9 @@ const EDGE_GAP = 8;
 
 function clampMenuPoint(left: number, top: number, width: number, height: number): ContextMenuPoint {
   if (typeof window === "undefined") return { left, top };
-  // width/height come from getBoundingClientRect (visual px); convert to CSS px.
-  const z = getCssZoom();
-  const edge = EDGE_GAP / z;
   return {
-    left: Math.min(Math.max(edge, left), Math.max(edge, window.innerWidth - width / z - edge)),
-    top: Math.min(Math.max(edge, top), Math.max(edge, window.innerHeight - height / z - edge)),
+    left: Math.min(Math.max(EDGE_GAP, left), Math.max(EDGE_GAP, window.innerWidth - width - EDGE_GAP)),
+    top: Math.min(Math.max(EDGE_GAP, top), Math.max(EDGE_GAP, window.innerHeight - height - EDGE_GAP)),
   };
 }
 
@@ -41,10 +37,8 @@ export function contextMenuPointFromEvent(
   if ("clientX" in event && event.clientX > 0 && event.clientY > 0) {
     return { left: event.clientX, top: event.clientY };
   }
-  // getBoundingClientRect returns visual pixels under CSS zoom; convert to CSS px.
-  const z = getCssZoom();
   const rect = event.currentTarget.getBoundingClientRect();
-  return { left: rect.left / z + 12 / z, top: rect.bottom / z + 6 / z };
+  return { left: rect.left + 12, top: rect.bottom + 6 };
 }
 
 export function ContextMenu({

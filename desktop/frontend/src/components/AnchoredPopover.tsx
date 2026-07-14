@@ -1,7 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { CSSProperties, ReactNode, RefObject } from "react";
 import { createPortal } from "react-dom";
-import { getCssZoom } from "../lib/dpiScale";
 
 type PopoverPosition = {
   left: number;
@@ -28,25 +27,18 @@ function calculatePosition(
   offset: number,
   placement: "auto" | "bottom",
 ): PopoverPosition {
-  // getBoundingClientRect returns visual pixels under CSS zoom; convert to CSS px.
-  const z = getCssZoom();
   const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
-  const a = { left: anchor.left / z, right: anchor.right / z, top: anchor.top / z, bottom: anchor.bottom / z };
-  const mw = menu.width / z;
-  const mh = menu.height / z;
-  const edgeGap = EDGE_GAP / z;
-  const off = offset / z;
-  const preferredTop = a.top - mh - off;
-  const fallbackTop = a.bottom + off;
+  const preferredTop = anchor.top - menu.height - offset;
+  const fallbackTop = anchor.bottom + offset;
   const top = placement === "bottom"
-    ? Math.min(fallbackTop, Math.max(edgeGap, viewportHeight - mh - edgeGap))
-    : preferredTop >= edgeGap
+    ? Math.min(fallbackTop, Math.max(EDGE_GAP, viewportHeight - menu.height - EDGE_GAP))
+    : preferredTop >= EDGE_GAP
     ? preferredTop
-    : Math.min(fallbackTop, Math.max(edgeGap, viewportHeight - mh - edgeGap));
-  const rawLeft = align === "end" ? a.right - mw : a.left;
-  const left = clamp(rawLeft, edgeGap, Math.max(edgeGap, viewportWidth - mw - edgeGap));
-  return { left, top: clamp(top, edgeGap, Math.max(edgeGap, viewportHeight - mh - edgeGap)) };
+    : Math.min(fallbackTop, Math.max(EDGE_GAP, viewportHeight - menu.height - EDGE_GAP));
+  const rawLeft = align === "end" ? anchor.right - menu.width : anchor.left;
+  const left = clamp(rawLeft, EDGE_GAP, Math.max(EDGE_GAP, viewportWidth - menu.width - EDGE_GAP));
+  return { left, top: clamp(top, EDGE_GAP, Math.max(EDGE_GAP, viewportHeight - menu.height - EDGE_GAP)) };
 }
 
 export function AnchoredPopover({
