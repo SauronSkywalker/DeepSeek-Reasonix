@@ -1,6 +1,7 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { getCssZoom } from "../lib/dpiScale";
 
 type TooltipSide = "top" | "bottom" | "left" | "right";
 
@@ -79,8 +80,14 @@ export function Tooltip({
     const trigger = triggerRef.current;
     const tip = tooltipRef.current;
     if (!trigger || !tip) return;
-    const rect = trigger.getBoundingClientRect();
-    const tipRect = tip.getBoundingClientRect();
+    // CSS zoom on <html> changes getBoundingClientRect() (visual pixels)
+    // but NOT window.innerWidth/innerHeight (CSS pixels).  Convert gBCR
+    // values to CSS pixel space so they are comparable with innerWidth/Height.
+    const z = getCssZoom();
+    const r = trigger.getBoundingClientRect();
+    const t = tip.getBoundingClientRect();
+    const rect   = { left: r.left / z, top: r.top / z, width: r.width / z, height: r.height / z, right: r.right / z, bottom: r.bottom / z };
+    const tipRect = { width: t.width / z, height: t.height / z };
     const space = {
       top: rect.top - EDGE_PAD,
       bottom: window.innerHeight - rect.bottom - EDGE_PAD,
@@ -111,8 +118,9 @@ export function Tooltip({
 
     left = clamp(left, EDGE_PAD, window.innerWidth - tipRect.width - EDGE_PAD);
     top = clamp(top, EDGE_PAD, window.innerHeight - tipRect.height - EDGE_PAD);
-    const arrowX = clamp(rect.left + rect.width / 2 - left, ARROW_PAD, tipRect.width - ARROW_PAD);
-    const arrowY = clamp(rect.top + rect.height / 2 - top, ARROW_PAD, tipRect.height - ARROW_PAD);
+    // Arrow offset in CSS pixels: (trigger center visual / zoom) - tooltip left CSS.
+    const arrowX = clamp((r.left + r.width / 2) / z - left, ARROW_PAD, t.width / z - ARROW_PAD);
+    const arrowY = clamp((r.top + r.height / 2) / z - top, ARROW_PAD, t.height / z - ARROW_PAD);
 
     const next = {
       left,
