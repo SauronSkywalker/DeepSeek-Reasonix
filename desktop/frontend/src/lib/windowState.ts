@@ -76,7 +76,15 @@ export function useViewportHeightVar() {
     const root = document.documentElement;
     const setHeight = () => {
       frame = 0;
-      const height = Math.round(window.visualViewport?.height ?? window.innerHeight);
+      // CSS zoom on <html> scales ALL content visually but does NOT change
+      // window.innerHeight (it still reports the physical CSS viewport).
+      // getBoundingClientRect() and layout, however, ARE affected by zoom.
+      // To keep --app-viewport-height in the zoomed coordinate system we
+      // divide by the factor so .app renders at exactly one viewport's worth:
+      //   .app CSS height = innerHeight / zoom
+      //   .app visual      = CSS * zoom = innerHeight = viewport ✅
+      const zoom = parseFloat(root.style.zoom) || 1;
+      const height = Math.round((window.visualViewport?.height ?? window.innerHeight) / zoom);
       if (height > 0) root.style.setProperty("--app-viewport-height", `${height}px`);
     };
     const schedule = () => {

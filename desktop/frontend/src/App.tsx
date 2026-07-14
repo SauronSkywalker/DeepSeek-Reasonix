@@ -1438,6 +1438,9 @@ export default function App() {
       ? planRevisionInsertRequest.request
       : null;
   const composerInsertRequest = activeTabId ? composerInsertRequestsByTab[activeTabId] ?? null : null;
+  const handleRevisionActiveChange = useCallback((active: boolean) => {
+    setWorkspaceInsertTarget(active ? "planRevision" : "composer");
+  }, []);
   const prefillSubagentCommand = useCallback((command: string) => {
     if (!activeTabId) return;
     setComposerInsertRequestsByTab((current) => ({
@@ -1968,7 +1971,12 @@ export default function App() {
 
   const refreshTabMetas = useCallback(async (): Promise<TabMeta[]> => {
     const tabs = asArray(await app.ListTabs().catch(() => [] as TabMeta[]));
-    setTabMetas(tabs);
+    setTabMetas((prev) => {
+      if (prev.length === tabs.length && prev.every((t, i) => JSON.stringify(t) === JSON.stringify(tabs[i]))) {
+        return prev;
+      }
+      return tabs;
+    });
     return tabs;
   }, []);
   const seedActiveTabMeta = useCallback((tab: TabMeta): void => {
@@ -3800,7 +3808,7 @@ export default function App() {
                 tabId={activeTabId}
                 workspaceScopeKey={workspaceScopeKey}
                 insertRequest={activePlanRevisionInsertRequest}
-                onRevisionActiveChange={(active) => setWorkspaceInsertTarget(active ? "planRevision" : "composer")}
+                onRevisionActiveChange={handleRevisionActiveChange}
                 onAnswer={async (allow, session, persist) => {
                   // Approving an exit_plan_mode plan leaves plan mode; await the
                   // mode switch before sending the approval so the controller

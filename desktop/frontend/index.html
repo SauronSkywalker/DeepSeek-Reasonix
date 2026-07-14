@@ -4,6 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Reasonix</title>
+    <script>
+      (function() {
+        try {
+          var z = parseFloat(localStorage.getItem("reasonix-zoom-restart"));
+          if (z >= 0.5 && z <= 2.0) document.documentElement.style.zoom = String(z);
+        } catch(e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

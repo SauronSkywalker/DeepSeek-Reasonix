@@ -356,7 +356,6 @@ export interface AppBindings {
   SetDesktopLayoutStyle(style: string): Promise<void>;
   SetDesktopZoomFactor(factor: number): Promise<void>;
   GetDesktopZoomFactor(): Promise<number>;
-  RestartApplication(): Promise<void>;
   SetDesktopCheckUpdates(enabled: boolean): Promise<void>;
   SetDesktopTelemetry(enabled: boolean): Promise<void>;
   SetDesktopMetrics(enabled: boolean): Promise<void>;
@@ -3595,9 +3594,6 @@ function makeMockApp(): AppBindings {
         },
         async GetDesktopZoomFactor() {
           return mockDesktopZoomFactor;
-        },
-        async RestartApplication() {
-          // no-op in mock
         },
         async SetDesktopCheckUpdates(enabled: boolean) {
           settings.checkUpdates = enabled;

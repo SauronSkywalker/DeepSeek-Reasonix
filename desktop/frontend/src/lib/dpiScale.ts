@@ -1,12 +1,15 @@
 /**
  * DPI zoom scale service.
  *
- * Uses the WebView2 ZoomFactor (Go side) for reliable, layout-safe zooming.
- * The frontend only saves the user's preference and lets the Go binding persist
- * it to desktop-zoom.json; on next startup main.go reads the file and applies
- * ZoomFactor to the WebView2 window options.
+ * Uses CSS `zoom` on `document.documentElement` for reliable, layout-safe
+ * zooming that survives window minimize/restore (unlike WebView2 ZoomFactor
+ * which can reset to 1.0 after restoring from minimized state).
  *
- * Range: 0.50 – 2.00 (50% – 200%), step 0.05.
+ * The restart zoom is read from localStorage by a synchronous inline <script>
+ * in index.html before any DOM renders, so there is no flash of unzoomed content.
+ *
+ * The Go-side ZoomFactor in main.go is kept at 1.0 — CSS zoom handles the rest.
+ * See the package comment in zoom_factor.go for the transition rationale.
  */
 
 export const MIN_ZOOM = 0.5;
@@ -62,18 +65,32 @@ export function getRestartZoom(): ZoomLevel {
 }
 
 /**
- * Save a zoom factor that will be picked up by Go on next startup and
- * applied as the WebView2 `ZoomFactor`. Takes effect after the app is
- * restarted (no layout issues — ZoomFactor is engine-level).
+ * Save a zoom factor to localStorage and apply it to the DOM immediately
+ * via CSS `zoom` on `document.documentElement` — no restart needed.
+ *
+ * A synchronous inline <script> in index.html also reads localStorage on
+ * cold start so there is no flash of unzoomed content before React mounts.
  */
 export function saveRestartZoom(userZoom: ZoomLevel): void {
-  writeZoom(snapZoom(userZoom));
+  const snapped = snapZoom(userZoom);
+  writeZoom(snapped);
+  if (typeof document !== "undefined" && document.documentElement) {
+    document.documentElement.style.zoom = String(snapped);
+    // CSS zoom does not fire resize events, so --app-viewport-height won't
+    // be recalculated by useViewportHeightVar.  Update it inline so the
+    // main container and all height-dependent children stay in sync.
+    const root = document.documentElement;
+    const zoom = snapped;
+    const height = Math.round((window.visualViewport?.height ?? window.innerHeight) / zoom);
+    if (height > 0) root.style.setProperty("--app-viewport-height", `${height}px`);
+  }
 }
 
 /**
- * Init: no-op for zoom (the Go-side ZoomFactor is applied at WebView2
- * creation time).
+ * Init: no-op for zoom — the inline <script> in index.html applies CSS zoom
+ * synchronously before any DOM renders. This function exists for future
+ * startup-time initialization if needed.
  */
 export function initDpiScale(): void {
-  /* zoom is handled entirely by the Go side (ZoomFactor) */
+  /* zoom is applied in index.html's inline script */
 }
