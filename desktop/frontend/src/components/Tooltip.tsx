@@ -79,8 +79,12 @@ export function Tooltip({
     const trigger = triggerRef.current;
     const tip = tooltipRef.current;
     if (!trigger || !tip) return;
-    const rect = trigger.getBoundingClientRect();
-    const tipRect = tip.getBoundingClientRect();
+    const z = parseFloat(document.documentElement?.style.zoom) || 1;
+    const r = trigger.getBoundingClientRect();
+    const t = tip.getBoundingClientRect();
+    // gBCR values are in visual pixels when CSS zoom != 1; convert to CSS px.
+    const rect = { left: r.left / z, top: r.top / z, width: r.width / z, height: r.height / z, right: r.right / z, bottom: r.bottom / z };
+    const tipRect = { width: t.width / z, height: t.height / z };
     const space = {
       top: rect.top - EDGE_PAD,
       bottom: window.innerHeight - rect.bottom - EDGE_PAD,
@@ -111,6 +115,7 @@ export function Tooltip({
 
     left = clamp(left, EDGE_PAD, window.innerWidth - tipRect.width - EDGE_PAD);
     top = clamp(top, EDGE_PAD, window.innerHeight - tipRect.height - EDGE_PAD);
+    // Arrow in CSS pixels.
     const arrowX = clamp(rect.left + rect.width / 2 - left, ARROW_PAD, tipRect.width - ARROW_PAD);
     const arrowY = clamp(rect.top + rect.height / 2 - top, ARROW_PAD, tipRect.height - ARROW_PAD);
 

@@ -25,9 +25,10 @@ const EDGE_GAP = 8;
 
 function clampMenuPoint(left: number, top: number, width: number, height: number): ContextMenuPoint {
   if (typeof window === "undefined") return { left, top };
+  const z = parseFloat(document.documentElement?.style.zoom) || 1;
   return {
-    left: Math.min(Math.max(EDGE_GAP, left), Math.max(EDGE_GAP, window.innerWidth - width - EDGE_GAP)),
-    top: Math.min(Math.max(EDGE_GAP, top), Math.max(EDGE_GAP, window.innerHeight - height - EDGE_GAP)),
+    left: Math.min(Math.max(EDGE_GAP, left), Math.max(EDGE_GAP, window.innerWidth - width / z - EDGE_GAP)),
+    top: Math.min(Math.max(EDGE_GAP, top), Math.max(EDGE_GAP, window.innerHeight - height / z - EDGE_GAP)),
   };
 }
 
@@ -37,8 +38,9 @@ export function contextMenuPointFromEvent(
   if ("clientX" in event && event.clientX > 0 && event.clientY > 0) {
     return { left: event.clientX, top: event.clientY };
   }
+  const z = parseFloat(document.documentElement?.style.zoom) || 1;
   const rect = event.currentTarget.getBoundingClientRect();
-  return { left: rect.left + 12, top: rect.bottom + 6 };
+  return { left: rect.left / z + 12, top: rect.bottom / z + 6 };
 }
 
 export function ContextMenu({
